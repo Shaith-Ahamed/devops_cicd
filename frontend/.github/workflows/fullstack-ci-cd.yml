@@ -1,0 +1,150 @@
+name: Full Stack CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+
+    - name: Run tests
+      run: npm run test:ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Upload frontend build
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend/dist/
+
+  backend:
+    runs-on: ubuntu-latest
+    needs: frontend  # Wait for frontend to complete first
+    defaults:
+      run:
+        working-directory: backend  # Backend is in backend/ folder
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -u root --password=rootpassword"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+        cache-dependency-path: backend/pom.xml
+
+    - name: Wait for MySQL to be ready
+      run: |
+        for i in {1..30}; do
+          if mysqladmin ping -h"localhost" -u"root" -p"rootpassword" --silent; then
+            echo "MySQL is ready!"
+            break
+          else
+            echo "MySQL not ready yet... attempt $i"
+            sleep 2
+          fi
+        done
+
+    - name: Build and run backend tests
+      run: mvn clean verify -Dtest=!**/ui/**
+      env:
+        SPRING_PROFILES_ACTIVE: test
+        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/testdb
+        SPRING_DATASOURCE_USERNAME: root
+        SPRING_DATASOURCE_PASSWORD: rootpassword
+        SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+
+    - name: Upload backend artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-jar
+        path: backend/target/*.jar
+
+  deploy:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Download frontend build
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend-dist/
+
+    - name: Download backend jar
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-jar
+        path: backend-jar/
+
+    - name: Create deployment package
+      run: |
+        mkdir -p deployment
+        # Copy frontend build
+        cp -r frontend-dist/* deployment/
+        # Copy backend jar
+        cp backend-jar/*.jar deployment/
+        # Create archive
+        tar -czf deployment-package.tar.gz deployment/
+        ls -la
+
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: full-deployment-package
+        path: deployment-package.tar.gz
+
+    - name: Show deployment info
+      run: |
+        echo "✅ Frontend built successfully!"
+        echo "✅ Backend built successfully!"
+        echo "📦 Frontend: React/Vite application"
+        echo "📦 Backend: Spring Boot JAR"
+        echo "📁 Frontend path: frontend/"
+        echo "📁 Backend path: backend/"
+        echo "🚀 Ready for deployment!"

@@ -1,0 +1,157 @@
+#name: Spring Boot CI/CD with MySQL
+#
+#on:
+#  push:
+#    branches: [ main, master ]
+#  pull_request:
+#    branches: [ main, master ]
+#
+#jobs:
+#  build-and-test:
+#    runs-on: ubuntu-latest
+#
+#    services:
+#      mysql:
+#        image: mysql:8.0
+#        env:
+#          MYSQL_ROOT_PASSWORD: rootpassword
+#          MYSQL_DATABASE: testdb
+#          MYSQL_USER: testuser
+#          MYSQL_PASSWORD: testpass
+#        options: >-
+#          --health-cmd "mysqladmin ping -h localhost -u root --password=rootpassword"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#        ports:
+#          - 3306:3306
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '17'
+#          distribution: 'temurin'
+#          cache: maven
+#
+#      # ADD THIS STEP - Set up Chrome for Selenium tests
+#      - name: Set up Chrome
+#        uses: browser-actions/setup-chrome@v1
+#        with:
+#          chrome-version: stable
+#
+#      - name: Wait for MySQL to be ready
+#        run: |
+#          for i in {1..30}; do
+#            if mysqladmin ping -h"localhost" -u"root" -p"rootpassword" --silent; then
+#              echo "MySQL is ready!"
+#              break
+#            else
+#              echo "MySQL not ready yet... attempt $i"
+#              sleep 2
+#            fi
+#          done
+#
+#      - name: Build and run tests with Maven
+#        run: mvn clean verify
+#        #        -Dtest=!**/ui/**   remove this line to work with selanium
+#        env:
+#          SPRING_PROFILES_ACTIVE: test
+#          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/testdb
+#          SPRING_DATASOURCE_USERNAME: root
+#          SPRING_DATASOURCE_PASSWORD: rootpassword
+#          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+#
+#      - name: Upload test results
+#        uses: actions/upload-artifact@v4
+#        if: always()
+#        with:
+#          name: test-results
+#          path: |
+#            target/surefire-reports/
+#            target/failsafe-reports/
+#            target/cucumber-reports/
+#            target/cucumber-reports.html
+#
+#      - name: Upload build artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: build-artifacts
+#          path: target/*.jar
+
+
+
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - '**'
+      - '!frontend/**'  # Exclude frontend changes
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - '**'
+      - '!frontend/**'  # Exclude frontend changes
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -u root --password=rootpassword"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h"localhost" -u"root" -p"rootpassword" --silent; then
+              echo "MySQL is ready!"
+              break
+            else
+              echo "MySQL not ready yet... attempt $i"
+              sleep 2
+            fi
+          done
+
+      - name: Build and run tests
+        run: mvn clean verify -Dtest=!**/ui/**
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/testdb
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: rootpassword
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+
+      - name: Upload backend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: target/*.jar
