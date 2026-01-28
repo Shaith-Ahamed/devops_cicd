@@ -12,7 +12,6 @@ pipeline {
         FRONTEND_IMAGE = 'shaith/online-education-frontend'
     }
     stages {
-        
         stage('Code Checkout') {
             steps {
                 git branch: 'main',
@@ -69,7 +68,13 @@ pipeline {
                 script {
                     sh """
                         docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                        aquasec/trivy image --severity HIGH,CRITICAL --format table --exit-code 0 \
+                        -v /tmp/trivy-cache:/root/.cache/ \
+                        aquasec/trivy image \
+                        --scanners vuln \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --exit-code 0 \
+                        --timeout 10m \
                         ${BACKEND_IMAGE}:${BUILD_NUMBER}
                     """
                 }
@@ -106,7 +111,13 @@ pipeline {
                 script {
                     sh """
                         docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                        aquasec/trivy image --severity HIGH,CRITICAL --format table --exit-code 0 \
+                        -v /tmp/trivy-cache:/root/.cache/ \
+                        aquasec/trivy image \
+                        --scanners vuln \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --exit-code 0 \
+                        --timeout 10m \
                         ${FRONTEND_IMAGE}:${BUILD_NUMBER}
                     """
                 }
