@@ -1,28 +1,28 @@
-pipeline {
-    agent any
-    tools {
-        jdk 'jdk17'
-        maven 'maven3'
-    }
-    environment {
-        GITHUB_CRED = 'GitHub-Token'
-        DOCKERHUB_CRED = 'DockerHub-Token'
-        SONAR_CRED = 'SonarQube-Token'
-        BACKEND_IMAGE = 'shaith/online-education-backend'
-        FRONTEND_IMAGE = 'shaith/online-education-frontend'
-        TRIVY_CACHE = '/tmp/trivy-cache'
-        TRIVY_TIMEOUT = '30m'  // Increased timeout
-    }
-    stages {
-        stage('Code Checkout') {
-            steps {
-                git branch: 'main',
-                    changelog: false,
-                    poll: false,
-                    url: 'https://github.com/Shaith-Ahamed/devops_cicd.git',
-                    credentialsId: "${GITHUB_CRED}"
-            }
-        }
+// pipeline {
+//     agent any
+//     tools {
+//         jdk 'jdk17'
+//         maven 'maven3'
+//     }
+//     environment {
+//         GITHUB_CRED = 'GitHub-Token'
+//         DOCKERHUB_CRED = 'DockerHub-Token'
+//         SONAR_CRED = 'SonarQube-Token'
+//         BACKEND_IMAGE = 'shaith/online-education-backend'
+//         FRONTEND_IMAGE = 'shaith/online-education-frontend'
+//         TRIVY_CACHE = '/tmp/trivy-cache'
+//         TRIVY_TIMEOUT = '30m'  // Increased timeout
+//     }
+//     stages {
+//         stage('Code Checkout') {
+//             steps {
+//                 git branch: 'main',
+//                     changelog: false,
+//                     poll: false,
+//                     url: 'https://github.com/Shaith-Ahamed/devops_cicd.git',
+//                     credentialsId: "${GITHUB_CRED}"
+//             }
+//         }
 
 //         stage('Backend: Clean & Compile') {
 //             steps {
@@ -143,14 +143,14 @@ pipeline {
 //             }
 //         }
 
-        stage('Staging Deployment') {
-            steps {
-                sh 'docker-compose down || true'
-                sh 'docker-compose pull'
-                sh 'docker-compose up -d'
-            }
-        }
-    }
+//         stage('Staging Deployment') {
+//             steps {
+//                 sh 'docker-compose down || true'
+//                 sh 'docker-compose pull'
+//                 sh 'docker-compose up -d'
+//             }
+//         }
+//     }
 
 //     post {
 //         always {
@@ -167,3 +167,36 @@ pipeline {
 //         }
 //     }
 // }
+
+
+
+stage('Staging Deployment') {
+    steps {
+        sh """
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v \$(pwd):/workspace \
+          -w /workspace \
+          docker/compose:2.20.2 \
+          down || true
+        """
+
+        sh """
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v \$(pwd):/workspace \
+          -w /workspace \
+          docker/compose:2.20.2 \
+          pull
+        """
+
+        sh """
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v \$(pwd):/workspace \
+          -w /workspace \
+          docker/compose:2.20.2 \
+          up -d
+        """
+    }
+}
