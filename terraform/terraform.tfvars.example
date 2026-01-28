@@ -1,0 +1,25 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and update with your values
+
+aws_region         = "us-east-1"
+project_name       = "online-education"
+environment        = "dev"
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# EC2 Key Pair (create this in AWS first)
+key_name = "online-education-key"
+
+# Jenkins Server (Free Tier)
+jenkins_ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
+jenkins_instance_type = "t2.micro"  # Free Tier: 750 hours/month
+
+# Application Server (Free Tier)
+app_ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
+app_instance_type = "t2.micro"  # Free Tier: 750 hours/month
+
+# Database (Free Tier)
+db_instance_class = "db.t3.micro"  # Free Tier: 750 hours/month
+db_name           = "users"
+db_username       = "admin"
+db_password       = "YourSecurePassword123!" # Change this!

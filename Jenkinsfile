@@ -39,7 +39,7 @@ pipeline {
                     withCredentials([string(credentialsId: "${SONAR_CRED}", variable: 'SONAR_TOKEN')]) {
                         sh '''
                             mvn sonar:sonar \
-                                -Dsonar.host.url=http://localhost:9000 \
+                                -Dsonar.host.url=http://sonarqube:9000 \
                                 -Dsonar.token=$SONAR_TOKEN \
                                 -Dsonar.java.binaries=target/classes
                         '''
