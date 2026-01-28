@@ -23,7 +23,6 @@ pipeline {
             }
         }
 
-        
         stage('Backend: Clean & Compile') {
             steps {
                 dir('backend') {  
@@ -32,7 +31,6 @@ pipeline {
             }
         }
 
-     
         stage('Backend: SonarQube Analysis') {
             steps {
                 dir('backend') { 
@@ -48,7 +46,6 @@ pipeline {
             }
         }
 
-      
         stage('Backend: Package') {
             steps {
                 dir('backend') {  
@@ -57,9 +54,6 @@ pipeline {
             }
         }
 
-
-
-     
         stage('Backend: Docker Build') {
             steps {
                 dir('backend') {  
@@ -74,10 +68,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                        trivy image --severity HIGH,CRITICAL \
-                            --format table \
-                            --exit-code 0 \
-                            ${BACKEND_IMAGE}:${BUILD_NUMBER}
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                        aquasec/trivy image --severity HIGH,CRITICAL --format table --exit-code 0 \
+                        ${BACKEND_IMAGE}:${BUILD_NUMBER}
                     """
                 }
             }
@@ -98,7 +91,6 @@ pipeline {
             }
         }
 
-        
         stage('Frontend: Docker Build') {
             steps { 
                 dir('frontend') {  
@@ -113,10 +105,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                        trivy image --severity HIGH,CRITICAL \
-                            --format table \
-                            --exit-code 0 \
-                            ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                        aquasec/trivy image --severity HIGH,CRITICAL --format table --exit-code 0 \
+                        ${FRONTEND_IMAGE}:${BUILD_NUMBER}
                     """
                 }
             }
@@ -137,7 +128,6 @@ pipeline {
             }
         }
 
-        
         stage('Staging Deployment') {
             steps {
                 sh 'docker compose down || true'
