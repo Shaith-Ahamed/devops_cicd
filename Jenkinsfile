@@ -170,6 +170,10 @@
 
 
 
+
+
+
+
 pipeline {
     agent any
 
@@ -183,7 +187,6 @@ pipeline {
 
         stage('Staging Deployment') {
             steps {
-                // Navigate to workspace and run docker compose directly
                 dir("${WORKSPACE}") {
                     sh 'docker compose down || true'
                     sh 'docker compose pull'
