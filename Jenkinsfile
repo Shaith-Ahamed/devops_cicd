@@ -172,14 +172,13 @@
 
 
 
-
-
 pipeline {
     agent any
 
     stages {
         stage('Checkout') {
             steps {
+                echo "Checking out repository..."
                 git branch: 'main',
                     url: 'https://github.com/Shaith-Ahamed/devops_cicd.git'
             }
@@ -188,9 +187,23 @@ pipeline {
         stage('Staging Deployment') {
             steps {
                 dir("${WORKSPACE}") {
+                    echo "Stopping any running containers..."
                     sh 'docker compose down || true'
-                    sh 'docker compose pull'
+
+                    echo "Pulling latest images..."
+                    sh '''
+                    docker compose pull || {
+                        echo "Pull failed, retrying..."
+                        sleep 5
+                        docker compose pull
+                    }
+                    '''
+
+                    echo "Starting containers..."
                     sh 'docker compose up -d'
+
+                    echo "Currently running containers:"
+                    sh 'docker ps'
                 }
             }
         }
