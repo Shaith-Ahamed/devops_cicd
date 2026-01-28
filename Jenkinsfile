@@ -170,33 +170,48 @@
 
 
 
-stage('Staging Deployment') {
-    steps {
-        sh """
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v \$(pwd):/workspace \
-          -w /workspace \
-          docker/compose:2.20.2 \
-          down || true
-        """
 
-        sh """
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v \$(pwd):/workspace \
-          -w /workspace \
-          docker/compose:2.20.2 \
-          pull
-        """
 
-        sh """
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v \$(pwd):/workspace \
-          -w /workspace \
-          docker/compose:2.20.2 \
-          up -d
-        """
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Shaith-Ahamed/devops_cicd.git'
+            }
+        }
+
+        stage('Staging Deployment') {
+            steps {
+                sh """
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  -v \$(pwd):/workspace \
+                  -w /workspace \
+                  docker/compose:2.20.2 \
+                  down || true
+                """
+
+                sh """
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  -v \$(pwd):/workspace \
+                  -w /workspace \
+                  docker/compose:2.20.2 \
+                  pull
+                """
+
+                sh """
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  -v \$(pwd):/workspace \
+                  -w /workspace \
+                  docker/compose:2.20.2 \
+                  up -d
+                """
+            }
+        }
     }
 }
