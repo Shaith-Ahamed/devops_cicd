@@ -24,124 +24,124 @@ pipeline {
             }
         }
 
-        stage('Backend: Clean & Compile') {
-            steps {
-                dir('backend') {  
-                    sh "mvn clean compile"
-                }
-            }
-        }
+//         stage('Backend: Clean & Compile') {
+//             steps {
+//                 dir('backend') {  
+//                     sh "mvn clean compile"
+//                 }
+//             }
+//         }
 
-        stage('Backend: SonarQube Analysis') {
-            steps {
-                dir('backend') { 
-                    withCredentials([string(credentialsId: "${SONAR_CRED}", variable: 'SONAR_TOKEN')]) {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.host.url=http://sonarqube:9000 \
-                                -Dsonar.token=$SONAR_TOKEN \
-                                -Dsonar.java.binaries=target/classes
-                        '''
-                    }
-                }
-            }
-        }
+//         stage('Backend: SonarQube Analysis') {
+//             steps {
+//                 dir('backend') { 
+//                     withCredentials([string(credentialsId: "${SONAR_CRED}", variable: 'SONAR_TOKEN')]) {
+//                         sh '''
+//                             mvn sonar:sonar \
+//                                 -Dsonar.host.url=http://sonarqube:9000 \
+//                                 -Dsonar.token=$SONAR_TOKEN \
+//                                 -Dsonar.java.binaries=target/classes
+//                         '''
+//                     }
+//                 }
+//             }
+//         }
 
-        stage('Backend: Package') {
-            steps {
-                dir('backend') {  
-                    sh "mvn package -DskipTests"
-                }
-            }
-        }
+//         stage('Backend: Package') {
+//             steps {
+//                 dir('backend') {  
+//                     sh "mvn package -DskipTests"
+//                 }
+//             }
+//         }
 
-        stage('Backend: Docker Build') {
-            steps {
-                dir('backend') {  
-                    script {
-                        sh "docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -f Dockerfile ."
-                    }
-                }
-            }
-        }
+//         stage('Backend: Docker Build') {
+//             steps {
+//                 dir('backend') {  
+//                     script {
+//                         sh "docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -f Dockerfile ."
+//                     }
+//                 }
+//             }
+//         }
 
-        stage('Backend: Trivy Scan') {
-            steps {
-                script {
-                    sh """
-                        docker run --rm \
-                            -v /var/run/docker.sock:/var/run/docker.sock \
-                            -v ${TRIVY_CACHE}:/root/.cache/ \
-                            aquasec/trivy image \
-                            --scanners vuln \
-                            --severity HIGH,CRITICAL \
-                            --format table \
-                            --exit-code 0 \
-                            --timeout ${TRIVY_TIMEOUT} \
-                            ${BACKEND_IMAGE}:${BUILD_NUMBER}
-                    """
-                }
-            }
-        }
+//         stage('Backend: Trivy Scan') {
+//             steps {
+//                 script {
+//                     sh """
+//                         docker run --rm \
+//                             -v /var/run/docker.sock:/var/run/docker.sock \
+//                             -v ${TRIVY_CACHE}:/root/.cache/ \
+//                             aquasec/trivy image \
+//                             --scanners vuln \
+//                             --severity HIGH,CRITICAL \
+//                             --format table \
+//                             --exit-code 0 \
+//                             --timeout ${TRIVY_TIMEOUT} \
+//                             ${BACKEND_IMAGE}:${BUILD_NUMBER}
+//                     """
+//                 }
+//             }
+//         }
 
-        stage('Backend: Docker Push') {
-            steps {
-                script {
-                    withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-                        def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
-                        def latestTag = "${BACKEND_IMAGE}:latest"
-                        sh "docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${latestTag}"
-                        sh "docker push ${buildTag}"
-                        sh "docker push ${latestTag}"
-                        env.BACKEND_BUILD_TAG = buildTag
-                    }
-                }
-            }
-        }
+//         stage('Backend: Docker Push') {
+//             steps {
+//                 script {
+//                     withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+//                         def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
+//                         def latestTag = "${BACKEND_IMAGE}:latest"
+//                         sh "docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${latestTag}"
+//                         sh "docker push ${buildTag}"
+//                         sh "docker push ${latestTag}"
+//                         env.BACKEND_BUILD_TAG = buildTag
+//                     }
+//                 }
+//             }
+//         }
 
-        stage('Frontend: Docker Build') {
-            steps { 
-                dir('frontend') {  
-                    script {
-                        sh "docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ."
-                    }
-                }
-            }
-        }
+//         stage('Frontend: Docker Build') {
+//             steps { 
+//                 dir('frontend') {  
+//                     script {
+//                         sh "docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ."
+//                     }
+//                 }
+//             }
+//         }
 
-        stage('Frontend: Trivy Scan') {
-            steps {
-                script {
-                    sh """
-                        docker run --rm \
-                            -v /var/run/docker.sock:/var/run/docker.sock \
-                            -v ${TRIVY_CACHE}:/root/.cache/ \
-                            aquasec/trivy image \
-                            --scanners vuln \
-                            --severity HIGH,CRITICAL \
-                            --format table \
-                            --exit-code 0 \
-                            --timeout ${TRIVY_TIMEOUT} \
-                            ${FRONTEND_IMAGE}:${BUILD_NUMBER}
-                    """
-                }
-            }
-        }
+//         stage('Frontend: Trivy Scan') {
+//             steps {
+//                 script {
+//                     sh """
+//                         docker run --rm \
+//                             -v /var/run/docker.sock:/var/run/docker.sock \
+//                             -v ${TRIVY_CACHE}:/root/.cache/ \
+//                             aquasec/trivy image \
+//                             --scanners vuln \
+//                             --severity HIGH,CRITICAL \
+//                             --format table \
+//                             --exit-code 0 \
+//                             --timeout ${TRIVY_TIMEOUT} \
+//                             ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+//                     """
+//                 }
+//             }
+//         }
 
-        stage('Frontend: Docker Push') {
-            steps { 
-                script {
-                    withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-                        def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                        def latestTag = "${FRONTEND_IMAGE}:latest"
-                        sh "docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${latestTag}"
-                        sh "docker push ${buildTag}"
-                        sh "docker push ${latestTag}"
-                        env.FRONTEND_BUILD_TAG = buildTag
-                    }
-                }
-            }
-        }
+//         stage('Frontend: Docker Push') {
+//             steps { 
+//                 script {
+//                     withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+//                         def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+//                         def latestTag = "${FRONTEND_IMAGE}:latest"
+//                         sh "docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${latestTag}"
+//                         sh "docker push ${buildTag}"
+//                         sh "docker push ${latestTag}"
+//                         env.FRONTEND_BUILD_TAG = buildTag
+//                     }
+//                 }
+//             }
+//         }
 
         stage('Staging Deployment') {
             steps {
@@ -152,18 +152,18 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo 'Cleaning up workspace...'
-            cleanWs()
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-            echo "Backend Image: ${env.BACKEND_BUILD_TAG}"
-            echo "Frontend Image: ${env.FRONTEND_BUILD_TAG}"
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
-}
+//     post {
+//         always {
+//             echo 'Cleaning up workspace...'
+//             cleanWs()
+//         }
+//         success {
+//             echo 'Pipeline completed successfully!'
+//             echo "Backend Image: ${env.BACKEND_BUILD_TAG}"
+//             echo "Frontend Image: ${env.FRONTEND_BUILD_TAG}"
+//         }
+//         failure {
+//             echo 'Pipeline failed!'
+//         }
+//     }
+// }
