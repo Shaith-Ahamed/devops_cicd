@@ -18,7 +18,7 @@ pipeline {
                 git branch: 'main',
                     changelog: false,
                     poll: false,
-                    url: 'https://github.com/Shaith-Ahamed/online-education-cicd.git',
+                    url: 'https://github.com/Shaith-Ahamed/devops_cicd.git',
                     credentialsId: "${GITHUB_CRED}"
             }
         }
@@ -60,40 +60,78 @@ pipeline {
 
 
      
-        stage('Backend: Docker Build & Push') {
+        stage('Backend: Docker Build') {
             steps {
                 dir('backend') {  
                     script {
-                        withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-                            def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
-                            def latestTag = "${BACKEND_IMAGE}:latest"
-                            sh "docker build -t ${BACKEND_IMAGE} -f Dockerfile ."
-                            sh "docker tag ${BACKEND_IMAGE} ${buildTag}"
-                            sh "docker tag ${BACKEND_IMAGE} ${latestTag}"
-                            sh "docker push ${buildTag}"
-                            sh "docker push ${latestTag}"
-                            env.BACKEND_BUILD_TAG = buildTag
-                        }
+                        sh "docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -f Dockerfile ."
+                    }
+                }
+            }
+        }
+
+        stage('Backend: Trivy Scan') {
+            steps {
+                script {
+                    sh """
+                        trivy image --severity HIGH,CRITICAL \
+                            --format table \
+                            --exit-code 0 \
+                            ${BACKEND_IMAGE}:${BUILD_NUMBER}
+                    """
+                }
+            }
+        }
+
+        stage('Backend: Docker Push') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+                        def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                        def latestTag = "${BACKEND_IMAGE}:latest"
+                        sh "docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${latestTag}"
+                        sh "docker push ${buildTag}"
+                        sh "docker push ${latestTag}"
+                        env.BACKEND_BUILD_TAG = buildTag
                     }
                 }
             }
         }
 
         
-        stage('Frontend: Docker Build & Push') {
+        stage('Frontend: Docker Build') {
             steps { 
                 dir('frontend') {  
                     script {
-                        withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-                            def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                            def latestTag = "${FRONTEND_IMAGE}:latest"
-                            sh "docker build -t ${FRONTEND_IMAGE} ."
-                            sh "docker tag ${FRONTEND_IMAGE} ${buildTag}"
-                            sh "docker tag ${FRONTEND_IMAGE} ${latestTag}"
-                            sh "docker push ${buildTag}"
-                            sh "docker push ${latestTag}"
-                            env.FRONTEND_BUILD_TAG = buildTag
-                        }
+                        sh "docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ."
+                    }
+                }
+            }
+        }
+
+        stage('Frontend: Trivy Scan') {
+            steps {
+                script {
+                    sh """
+                        trivy image --severity HIGH,CRITICAL \
+                            --format table \
+                            --exit-code 0 \
+                            ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                    """
+                }
+            }
+        }
+
+        stage('Frontend: Docker Push') {
+            steps { 
+                script {
+                    withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+                        def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                        def latestTag = "${FRONTEND_IMAGE}:latest"
+                        sh "docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${latestTag}"
+                        sh "docker push ${buildTag}"
+                        sh "docker push ${latestTag}"
+                        env.FRONTEND_BUILD_TAG = buildTag
                     }
                 }
             }
