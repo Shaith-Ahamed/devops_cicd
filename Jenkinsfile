@@ -10,6 +10,8 @@ pipeline {
         SONAR_CRED = 'SonarQube-Token'
         BACKEND_IMAGE = 'shaith/online-education-backend'
         FRONTEND_IMAGE = 'shaith/online-education-frontend'
+        TRIVY_CACHE = '/tmp/trivy-cache'
+        TRIVY_TIMEOUT = '30m'  // Increased timeout
     }
     stages {
         stage('Code Checkout') {
@@ -67,15 +69,16 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v /tmp/trivy-cache:/root/.cache/ \
-                        aquasec/trivy image \
-                        --scanners vuln \
-                        --severity HIGH,CRITICAL \
-                        --format table \
-                        --exit-code 0 \
-                        --timeout 10m \
-                        ${BACKEND_IMAGE}:${BUILD_NUMBER}
+                        docker run --rm \
+                            -v /var/run/docker.sock:/var/run/docker.sock \
+                            -v ${TRIVY_CACHE}:/root/.cache/ \
+                            aquasec/trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --format table \
+                            --exit-code 0 \
+                            --timeout ${TRIVY_TIMEOUT} \
+                            ${BACKEND_IMAGE}:${BUILD_NUMBER}
                     """
                 }
             }
@@ -110,15 +113,16 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v /tmp/trivy-cache:/root/.cache/ \
-                        aquasec/trivy image \
-                        --scanners vuln \
-                        --severity HIGH,CRITICAL \
-                        --format table \
-                        --exit-code 0 \
-                        --timeout 10m \
-                        ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                        docker run --rm \
+                            -v /var/run/docker.sock:/var/run/docker.sock \
+                            -v ${TRIVY_CACHE}:/root/.cache/ \
+                            aquasec/trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --format table \
+                            --exit-code 0 \
+                            --timeout ${TRIVY_TIMEOUT} \
+                            ${FRONTEND_IMAGE}:${BUILD_NUMBER}
                     """
                 }
             }
