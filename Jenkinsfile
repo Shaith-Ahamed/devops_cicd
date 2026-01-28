@@ -185,6 +185,12 @@ pipeline {
         }
 
         stage('Staging Deployment') {
+            agent {
+                docker {
+                    image 'docker:24.0.7-dind'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 dir("${WORKSPACE}") {
                     echo "Stopping any running containers..."
