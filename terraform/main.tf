@@ -209,25 +209,8 @@ resource "aws_instance" "jenkins" {
               #!/bin/bash
               sudo apt-get update -y
               sudo apt-get install -y openjdk-17-jdk docker.io docker-compose
-              sudo usermod -aG docker ubuntu
-              sudo usermod -aG docker jenkins
-              
-              # Install Jenkins
-              wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
-              sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
-              sudo apt-get update -y
-              sudo apt-get install -y jenkins
-              sudo systemctl start jenkins
-              sudo systemctl enable jenkins
-              
-              # Install Trivy
-              wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-              echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-              sudo apt-get update -y
-              sudo apt-get install -y trivy
-              
-              # Install Maven
-              sudo apt-get install -y maven
+              sudo systemctl start docker
+              sudo systemctl enable docker
               
               # Create Docker network for Jenkins and SonarQube
               sudo docker network create jenkins-network || true
@@ -236,15 +219,39 @@ resource "aws_instance" "jenkins" {
               sudo docker run -d \
                 --name sonarqube \
                 --network jenkins-network \
+                --restart unless-stopped \
                 -p 9000:9000 \
                 -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
                 sonarqube:lts-community
               
-              # Wait for services to start
+              # Run Jenkins in Docker with Docker socket mounted
+              sudo docker run -d \
+                --name jenkins \
+                --network jenkins-network \
+                --restart unless-stopped \
+                -p 8080:8080 -p 50000:50000 \
+                -v jenkins_home:/var/jenkins_home \
+                -v /var/run/docker.sock:/var/run/docker.sock \
+                -u root \
+                jenkins/jenkins:lts
+              
+              # Wait for Jenkins to start
               sleep 30
               
-              # Restart Jenkins to apply docker group
-              sudo systemctl restart jenkins
+              # Install Docker CLI and Trivy inside Jenkins container
+              sudo docker exec -u root jenkins bash -c "
+                apt-get update && \
+                apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
+                curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+                echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable' > /etc/apt/sources.list.d/docker.list && \
+                apt-get update && \
+                apt-get install -y docker-ce-cli docker-compose-plugin && \
+                chmod 666 /var/run/docker.sock && \
+                wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add - && \
+                echo 'deb https://aquasecurity.github.io/trivy-repo/deb bullseye main' > /etc/apt/sources.list.d/trivy.list && \
+                apt-get update && \
+                apt-get install -y trivy
+              "
               EOF
 
   root_block_device {
