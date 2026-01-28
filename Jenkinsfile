@@ -171,7 +171,6 @@
 
 
 
-
 pipeline {
     agent any
 
@@ -185,32 +184,32 @@ pipeline {
 
         stage('Staging Deployment') {
             steps {
-                sh """
+                sh '''
                 docker run --rm \
                   -v /var/run/docker.sock:/var/run/docker.sock \
-                  -v \$(pwd):/workspace \
+                  -v $(pwd):/workspace \
                   -w /workspace \
-                  docker/compose:2.20.2 \
-                  down || true
-                """
+                  docker:24.0.7-cli \
+                  docker compose down || true
+                '''
 
-                sh """
+                sh '''
                 docker run --rm \
                   -v /var/run/docker.sock:/var/run/docker.sock \
-                  -v \$(pwd):/workspace \
+                  -v $(pwd):/workspace \
                   -w /workspace \
-                  docker/compose:2.20.2 \
-                  pull
-                """
+                  docker:24.0.7-cli \
+                  docker compose pull
+                '''
 
-                sh """
+                sh '''
                 docker run --rm \
                   -v /var/run/docker.sock:/var/run/docker.sock \
-                  -v \$(pwd):/workspace \
+                  -v $(pwd):/workspace \
                   -w /workspace \
-                  docker/compose:2.20.2 \
-                  up -d
-                """
+                  docker:24.0.7-cli \
+                  docker compose up -d
+                '''
             }
         }
     }
