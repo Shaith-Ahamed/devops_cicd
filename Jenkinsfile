@@ -346,9 +346,11 @@ pipeline {
 
         stage('Staging Deployment') {
             steps {
+                dir("${env.WORKSPACE}"){
                 sh 'docker compose down || true'
                 sh 'docker compose pull'
                 sh 'docker compose up -d'
+            }
             }
         }
     }
