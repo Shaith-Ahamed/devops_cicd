@@ -10,11 +10,11 @@ This Terraform configuration provisions AWS infrastructure for the online educat
 - **Route tables** for public subnets
 
 ### Compute
-- **Jenkins Server** (EC2 t3.medium)
+- **Jenkins Server** (EC2 t2.micro/t3.micro)
   - Pre-installed: Jenkins, Docker, Trivy, Maven, Java 17
   - Accessible on port 8080
   
-- **Application Server** (EC2 t3.medium)
+- **Application Server** (EC2 t2.micro/t3.micro)
   - Pre-installed: Docker, Docker Compose
   - Runs frontend (port 3000) and backend (port 8081)
 
@@ -131,11 +131,19 @@ environment:
 
 ## Cost Estimation
 
+### Free Tier (First 12 months)
+- **EC2 t2.micro/t3.micro** (2 instances): **$0** (750 hours each)
+- **RDS db.t3.micro**: **$0** (750 hours)
+- **EBS gp2** (30GB each): **$0** (30GB included)
+- **RDS Storage** (20GB): **$0** (20GB included)
+- **Total: $0/month** (within Free Tier limits)
+
+### After Free Tier Expires
 Approximate monthly costs (us-east-1):
-- EC2 t3.medium (2 instances): ~$60
-- RDS db.t3.micro: ~$15
-- Data transfer & storage: ~$10
-- **Total: ~$85/month**
+- EC2 t3.micro (2 instances): ~$16.20
+- RDS db.t3.micro: ~$14.40
+- Data transfer & storage: ~$5
+- **Total: ~$35.60/month**
 
 ## Cleanup
 
@@ -185,15 +193,23 @@ rm -rf .terraform
 terraform init
 ```
 
-### Can't SSH to Instances
-- Check security group rules
-- Verify key pair permissions: `chmod 400 <key>.pem`
-- Ensure public IP is assigned
+### IAM User Permissions
+- Verify your IAM user has these permissions:
+  - `AmazonRDSFullAccess` (for RDS operations)
+  - `AmazonEC2FullAccess` (for EC2 operations)
+  - `AmazonVPCFullAccess` (for networking)
 
-### RDS Connection Issues
-- Verify security group allows traffic from application SG
-- Check RDS is in private subnet
-- Use RDS endpoint from Terraform output
+To add permissions:
+1. Go to AWS Console → IAM → Users → [your-user]
+2. Click **Add permissions** → **Attach policies directly**
+3. Search and attach: `AmazonRDSFullAccess`
+
+### MySQL Version Issues
+If you get "Cannot find version X.X.X for mysql":
+- Update `engine_version` in `main.tf` to a valid version
+- Current version set: `8.4.7`
+- Common available versions: `8.0.28`, `8.0.32`, `8.0.39`, `5.7.44`
+- Check available versions: `aws rds describe-db-engine-versions --engine mysql --region us-east-1`
 
 ## Support
 

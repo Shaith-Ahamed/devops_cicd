@@ -308,7 +308,7 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_db_instance" "mysql" {
   identifier             = "${var.project_name}-mysql"
   engine                 = "mysql"
-  engine_version         = "8.0.35"  # Free Tier compatible version
+  engine_version         = "8.4.7"  # Updated to 8.4.7 as requested
   instance_class         = var.db_instance_class
   allocated_storage      = 20  # Free Tier: 20GB
   storage_type           = "gp2"  # Free Tier uses gp2, not gp3

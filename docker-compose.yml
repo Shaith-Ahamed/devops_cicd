@@ -1,3 +1,57 @@
+# version: "3.9"
+
+# services:
+#   frontend:
+#     build:
+#       context: ./frontend
+#       args:
+#         - VITE_API_BASE=http://localhost:8081
+#     ports:
+#       - "3000:80"
+#     networks:
+#       - app-network
+
+#   backend:
+#     build: ./backend
+#     ports:
+#       - "8081:8080"
+#     environment:
+#       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/users?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: root
+#       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     networks:
+#       - app-network
+
+#   db:
+#     image: mysql:8.0
+#     restart: always
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root
+#       MYSQL_DATABASE: users
+#     ports:
+#       - "3307:3306"
+#     volumes:
+#       - db_data:/var/lib/mysql
+#     networks:
+#       - app-network
+#     healthcheck:
+#       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+#       interval: 5s
+#       timeout: 10s
+#       retries: 10
+
+# volumes:
+#   db_data:
+
+# networks:
+#   app-network:
+#     driver: bridge
+
+
 version: "3.9"
 
 services:
@@ -5,47 +59,30 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_BASE=http://localhost:8081
+        - VITE_API_BASE=http://3.238.141.63:8080  # Backend runs on port 8080 with host networking
     ports:
       - "3000:80"
     networks:
       - app-network
+    restart: always
 
   backend:
     build: ./backend
-    ports:
-      - "8081:8080"
+    network_mode: host
+    # ports:
+    #   - "8081:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/users?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  db:
-    image: mysql:8.0
+      SPRING_DATASOURCE_URL: jdbc:mysql://online-education-mysql.ccju26ue634z.us-east-1.rds.amazonaws.com:3306/users?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: YourSecurePassword123!
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create  # Changed from update to create for initial setup
+    # networks:
+    #   - app-network
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: users
-    ports:
-      - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
 
 volumes:
-  db_data:
+  frontend_data:
+  backend_data:
 
 networks:
   app-network:
