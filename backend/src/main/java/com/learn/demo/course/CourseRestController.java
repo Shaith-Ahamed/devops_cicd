@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://3.238.141.63:3000"})
 
 
 
