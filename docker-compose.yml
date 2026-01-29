@@ -59,7 +59,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_BASE=http://3.238.141.63:8080  # Backend runs on port 8080 with host networking
+        - VITE_API_BASE=http://3.238.141.63:8081  # Change to your backend public IP
     ports:
       - "3000:80"
     networks:
@@ -69,15 +69,15 @@ services:
   backend:
     build: ./backend
     network_mode: host
-    # ports:
-    #   - "8081:8080"
+    ports:
+      - "8081:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://online-education-mysql.ccju26ue634z.us-east-1.rds.amazonaws.com:3306/users?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: YourSecurePassword123!
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create  # Changed from update to create for initial setup
-    # networks:
-    #   - app-network
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - app-network
     restart: always
 
 volumes:
