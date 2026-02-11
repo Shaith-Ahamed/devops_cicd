@@ -363,9 +363,10 @@ pipeline {
         stage('Staging Deployment') {
             steps {
                 dir("${env.WORKSPACE}"){
-                sh 'docker-compose down --remove-orphans || true'
-                // sh 'docker-compose pull'
-                // sh 'docker-compose up -d'
+                    sh '/usr/local/bin/docker-compose down --remove-orphans || true'
+                    sh '/usr/local/bin/docker-compose pull'
+                    sh '/usr/local/bin/docker-compose up -d'
+
             }
             }
         }
