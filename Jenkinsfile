@@ -1,5 +1,6 @@
 
 
+
 pipeline {
     agent any
     tools {
@@ -41,134 +42,122 @@ pipeline {
             }
         }
 
-        // stage('Backend: Clean & Compile') {
-        //     steps {
-        //         dir('backend') {  
-        //             sh "mvn clean compile"
-        //         }
-        //     }
-        // }
-
-        // stage('Backend: SonarCloud Analysis') {
-        //     steps {
-        //         dir('backend') { 
-        //             withCredentials([string(credentialsId: "${SONAR_CLOUD_CRED}", variable: 'SONAR_TOKEN')]) {
-        //                 sh """
-        //                     mvn sonar:sonar \
-        //                       -Dsonar.projectKey=devops_cicd \
-        //                       -Dsonar.organization=shaith-ahamed \
-        //                       -Dsonar.host.url=https://sonarcloud.io \
-        //                       -Dsonar.login=$SONAR_TOKEN \
-        //                       -Dsonar.java.binaries=target/classes
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Backend: Package') {
-        //     steps {
-        //         dir('backend') {  
-        //             sh "mvn package -DskipTests"
-        //         }
-        //     }
-        // }
-
-        // stage('Backend: Docker Build & Push') {
-        //     steps {
-        //         dir('backend') {  
-        //             script {
-        //                 def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
-        //                 def latestTag = "${BACKEND_IMAGE}:latest"
-        //                 sh "docker build -t ${buildTag} -f Dockerfile ."
-                        
-        //                 // Trivy scan
-        //                 sh """
-        //                     docker run --rm \
-        //                       -v /var/run/docker.sock:/var/run/docker.sock \
-        //                       -v ${TRIVY_CACHE}:/root/.cache/ \
-        //                       aquasec/trivy image \
-        //                       --scanners vuln \
-        //                       --severity HIGH,CRITICAL \
-        //                       --format table \
-        //                       --exit-code 0 \
-        //                       --timeout ${TRIVY_TIMEOUT} \
-        //                       ${buildTag}
-        //                 """
-                        
-        //                 // Docker push
-        //                 withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-        //                     sh "docker tag ${buildTag} ${latestTag}"
-        //                     sh "docker push ${buildTag}"
-        //                     sh "docker push ${latestTag}"
-        //                     env.BACKEND_BUILD_TAG = buildTag
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Frontend: Docker Build & Push') {
-        //     steps { 
-        //         dir('frontend') {  
-        //             script {
-        //                 def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-        //                 def latestTag = "${FRONTEND_IMAGE}:latest"
-        //                 sh "docker build -t ${buildTag} ."
-
-        //                 // Trivy scan
-        //                 sh """
-        //                     docker run --rm \
-        //                       -v /var/run/docker.sock:/var/run/docker.sock \
-        //                       -v ${TRIVY_CACHE}:/root/.cache/ \
-        //                       aquasec/trivy image \
-        //                       --scanners vuln \
-        //                       --severity HIGH,CRITICAL \
-        //                       --format table \
-        //                       --exit-code 0 \
-        //                       --timeout ${TRIVY_TIMEOUT} \
-        //                       ${buildTag}
-        //                 """
-
-        //                 // Docker push
-        //                 withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-        //                     sh "docker tag ${buildTag} ${latestTag}"
-        //                     sh "docker push ${buildTag}"
-        //                     sh "docker push ${latestTag}"
-        //                     env.FRONTEND_BUILD_TAG = buildTag
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        stage('Staging Deployment') {
-            agent {
-                docker {
-                    image 'docker:24.0.7-dind'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
+        stage('Backend: Clean & Compile') {
+            steps {
+                dir('backend') {  
+                    sh "mvn clean compile"
                 }
             }
+        }
+
+        stage('Backend: SonarCloud Analysis') {
             steps {
-                dir("${env.WORKSPACE}") {
+                dir('backend') { 
+                    withCredentials([string(credentialsId: "${SONAR_CLOUD_CRED}", variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \
+                              -Dsonar.projectKey=devops_cicd \
+                              -Dsonar.organization=shaith-ahamed \
+                              -Dsonar.host.url=https://sonarcloud.io \
+                              -Dsonar.login=$SONAR_TOKEN \
+                              -Dsonar.java.binaries=target/classes
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Backend: Package') {
+            steps {
+                dir('backend') {  
+                    sh "mvn package -DskipTests"
+                }
+            }
+        }
+
+        stage('Backend: Docker Build & Push') {
+            steps {
+                dir('backend') {  
                     script {
-                        echo 'Deploying with Docker...'
+                        def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                        def latestTag = "${BACKEND_IMAGE}:latest"
+                        sh "docker build -t ${buildTag} -f Dockerfile ."
+                        
+                        // Trivy scan
+                        sh """
+                            docker run --rm \
+                              -v /var/run/docker.sock:/var/run/docker.sock \
+                              -v ${TRIVY_CACHE}:/root/.cache/ \
+                              aquasec/trivy image \
+                              --scanners vuln \
+                              --severity HIGH,CRITICAL \
+                              --format table \
+                              --exit-code 0 \
+                              --timeout ${TRIVY_TIMEOUT} \
+                              ${buildTag}
+                        """
+                        
+                        // Docker push
+                        withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+                            sh "docker tag ${buildTag} ${latestTag}"
+                            sh "docker push ${buildTag}"
+                            sh "docker push ${latestTag}"
+                            env.BACKEND_BUILD_TAG = buildTag
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Frontend: Docker Build & Push') {
+            steps { 
+                dir('frontend') {  
+                    script {
+                        def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                        def latestTag = "${FRONTEND_IMAGE}:latest"
+                        sh "docker build -t ${buildTag} ."
+
+                        // Trivy scan
+                        sh """
+                            docker run --rm \
+                              -v /var/run/docker.sock:/var/run/docker.sock \
+                              -v ${TRIVY_CACHE}:/root/.cache/ \
+                              aquasec/trivy image \
+                              --scanners vuln \
+                              --severity HIGH,CRITICAL \
+                              --format table \
+                              --exit-code 0 \
+                              --timeout ${TRIVY_TIMEOUT} \
+                              ${buildTag}
+                        """
+
+                        // Docker push
+                        withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+                            sh "docker tag ${buildTag} ${latestTag}"
+                            sh "docker push ${buildTag}"
+                            sh "docker push ${latestTag}"
+                            env.FRONTEND_BUILD_TAG = buildTag
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Staging Deployment') {
+            steps {
+                script {
+                    echo 'Deploying to application server...'
+                    // Deploy to your application server via SSH
+                    sshagent(['app-server-ssh-key']) {
                         sh '''
-                            # Install docker-compose if not available
-                            apk add --no-cache docker-cli-compose || true
-                            
-                            # Check versions
-                            docker --version
-                            docker compose version || docker-compose version || true
-                            
-                            # Stop existing containers
-                            docker compose down --remove-orphans || docker-compose down --remove-orphans || true
-                            
-                            # Start containers
-                            docker compose up -d --build || docker-compose up -d --build
-                            
-                            # Show running containers
-                            docker ps
+                            ssh -o StrictHostKeyChecking=no ubuntu@3.238.141.63 '
+                                cd ~/devops_cicd || cd ~/online-education-cicd
+                                git pull origin main
+                                docker compose down --remove-orphans || true
+                                docker compose pull || true
+                                docker compose up -d --build
+                                docker ps
+                            '
                         '''
                     }
                 }
