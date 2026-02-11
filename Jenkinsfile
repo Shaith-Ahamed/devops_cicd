@@ -233,6 +233,20 @@ pipeline {
     }
 
     stages {
+
+        stage('clean workspace') {
+            steps {
+                deleteDir() // safely deletes the workspace
+            }
+        }
+
+
+
+
+
+
+
+
         stage('Code Checkout') {
             steps {
                 git branch: 'main',
