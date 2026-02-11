@@ -236,7 +236,7 @@ pipeline {
 
         stage('clean workspace') {
             steps {
-                deleteDir() // safely deletes the workspace
+                deleteDir() 
             }
         }
 
@@ -361,7 +361,7 @@ pipeline {
         stage('Staging Deployment') {
             steps {
                 dir("${env.WORKSPACE}"){
-                sh 'docker compose down || true'
+                sh 'docker compose down --remove-orphans || true'
                 sh 'docker compose pull'
                 sh 'docker compose up -d'
             }
