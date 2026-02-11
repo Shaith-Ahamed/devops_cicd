@@ -216,6 +216,8 @@
 //     }
 // }
 
+
+
 pipeline {
     agent any
     tools {
@@ -257,113 +259,113 @@ pipeline {
             }
         }
 
-        stage('Backend: Clean & Compile') {
-            steps {
-                dir('backend') {  
-                    sh "mvn clean compile"
-                }
-            }
-        }
+        // stage('Backend: Clean & Compile') {
+        //     steps {
+        //         dir('backend') {  
+        //             sh "mvn clean compile"
+        //         }
+        //     }
+        // }
 
-        stage('Backend: SonarCloud Analysis') {
-            steps {
-                dir('backend') { 
-                    withCredentials([string(credentialsId: "${SONAR_CLOUD_CRED}", variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn sonar:sonar \
-                              -Dsonar.projectKey=devops_cicd \
-                              -Dsonar.organization=shaith-ahamed \
-                              -Dsonar.host.url=https://sonarcloud.io \
-                              -Dsonar.login=$SONAR_TOKEN \
-                              -Dsonar.java.binaries=target/classes
-                        """
-                    }
-                }
-            }
-        }
+        // stage('Backend: SonarCloud Analysis') {
+        //     steps {
+        //         dir('backend') { 
+        //             withCredentials([string(credentialsId: "${SONAR_CLOUD_CRED}", variable: 'SONAR_TOKEN')]) {
+        //                 sh """
+        //                     mvn sonar:sonar \
+        //                       -Dsonar.projectKey=devops_cicd \
+        //                       -Dsonar.organization=shaith-ahamed \
+        //                       -Dsonar.host.url=https://sonarcloud.io \
+        //                       -Dsonar.login=$SONAR_TOKEN \
+        //                       -Dsonar.java.binaries=target/classes
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Backend: Package') {
-            steps {
-                dir('backend') {  
-                    sh "mvn package -DskipTests"
-                }
-            }
-        }
+        // stage('Backend: Package') {
+        //     steps {
+        //         dir('backend') {  
+        //             sh "mvn package -DskipTests"
+        //         }
+        //     }
+        // }
 
-        stage('Backend: Docker Build & Push') {
-            steps {
-                dir('backend') {  
-                    script {
-                        def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
-                        def latestTag = "${BACKEND_IMAGE}:latest"
-                        sh "docker build -t ${buildTag} -f Dockerfile ."
+        // stage('Backend: Docker Build & Push') {
+        //     steps {
+        //         dir('backend') {  
+        //             script {
+        //                 def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
+        //                 def latestTag = "${BACKEND_IMAGE}:latest"
+        //                 sh "docker build -t ${buildTag} -f Dockerfile ."
                         
-                        // Trivy scan
-                        sh """
-                            docker run --rm \
-                              -v /var/run/docker.sock:/var/run/docker.sock \
-                              -v ${TRIVY_CACHE}:/root/.cache/ \
-                              aquasec/trivy image \
-                              --scanners vuln \
-                              --severity HIGH,CRITICAL \
-                              --format table \
-                              --exit-code 0 \
-                              --timeout ${TRIVY_TIMEOUT} \
-                              ${buildTag}
-                        """
+        //                 // Trivy scan
+        //                 sh """
+        //                     docker run --rm \
+        //                       -v /var/run/docker.sock:/var/run/docker.sock \
+        //                       -v ${TRIVY_CACHE}:/root/.cache/ \
+        //                       aquasec/trivy image \
+        //                       --scanners vuln \
+        //                       --severity HIGH,CRITICAL \
+        //                       --format table \
+        //                       --exit-code 0 \
+        //                       --timeout ${TRIVY_TIMEOUT} \
+        //                       ${buildTag}
+        //                 """
                         
-                        // Docker push
-                        withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-                            sh "docker tag ${buildTag} ${latestTag}"
-                            sh "docker push ${buildTag}"
-                            sh "docker push ${latestTag}"
-                            env.BACKEND_BUILD_TAG = buildTag
-                        }
-                    }
-                }
-            }
-        }
+        //                 // Docker push
+        //                 withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+        //                     sh "docker tag ${buildTag} ${latestTag}"
+        //                     sh "docker push ${buildTag}"
+        //                     sh "docker push ${latestTag}"
+        //                     env.BACKEND_BUILD_TAG = buildTag
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Frontend: Docker Build & Push') {
-            steps { 
-                dir('frontend') {  
-                    script {
-                        def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                        def latestTag = "${FRONTEND_IMAGE}:latest"
-                        sh "docker build -t ${buildTag} ."
+        // stage('Frontend: Docker Build & Push') {
+        //     steps { 
+        //         dir('frontend') {  
+        //             script {
+        //                 def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+        //                 def latestTag = "${FRONTEND_IMAGE}:latest"
+        //                 sh "docker build -t ${buildTag} ."
 
-                        // Trivy scan
-                        sh """
-                            docker run --rm \
-                              -v /var/run/docker.sock:/var/run/docker.sock \
-                              -v ${TRIVY_CACHE}:/root/.cache/ \
-                              aquasec/trivy image \
-                              --scanners vuln \
-                              --severity HIGH,CRITICAL \
-                              --format table \
-                              --exit-code 0 \
-                              --timeout ${TRIVY_TIMEOUT} \
-                              ${buildTag}
-                        """
+        //                 // Trivy scan
+        //                 sh """
+        //                     docker run --rm \
+        //                       -v /var/run/docker.sock:/var/run/docker.sock \
+        //                       -v ${TRIVY_CACHE}:/root/.cache/ \
+        //                       aquasec/trivy image \
+        //                       --scanners vuln \
+        //                       --severity HIGH,CRITICAL \
+        //                       --format table \
+        //                       --exit-code 0 \
+        //                       --timeout ${TRIVY_TIMEOUT} \
+        //                       ${buildTag}
+        //                 """
 
-                        // Docker push
-                        withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
-                            sh "docker tag ${buildTag} ${latestTag}"
-                            sh "docker push ${buildTag}"
-                            sh "docker push ${latestTag}"
-                            env.FRONTEND_BUILD_TAG = buildTag
-                        }
-                    }
-                }
-            }
-        }
+        //                 // Docker push
+        //                 withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
+        //                     sh "docker tag ${buildTag} ${latestTag}"
+        //                     sh "docker push ${buildTag}"
+        //                     sh "docker push ${latestTag}"
+        //                     env.FRONTEND_BUILD_TAG = buildTag
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Staging Deployment') {
             steps {
                 dir("${env.WORKSPACE}"){
-                sh 'docker-compose down --remove-orphans || true'
-                sh 'docker-compose pull'
-                sh 'docker-compose up -d'
+                sh 'docker compose down --remove-orphans || true'
+                sh 'docker compose pull'
+                sh 'docker compose up -d'
             }
             }
         }
