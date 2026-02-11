@@ -143,19 +143,29 @@ pipeline {
         // }
 
         stage('Staging Deployment') {
+            agent {
+                docker {
+                    image 'docker:24.0.7-dind'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
+                }
+            }
             steps {
                 dir("${env.WORKSPACE}") {
                     script {
-                        echo 'Deploying locally...'
+                        echo 'Deploying with Docker...'
                         sh '''
-                            # Check Docker Compose version
-                            docker compose version || docker-compose version
+                            # Install docker-compose if not available
+                            apk add --no-cache docker-cli-compose || true
+                            
+                            # Check versions
+                            docker --version
+                            docker compose version || docker-compose version || true
                             
                             # Stop existing containers
-                            docker compose down --remove-orphans 2>/dev/null || docker-compose down --remove-orphans || true
+                            docker compose down --remove-orphans || docker-compose down --remove-orphans || true
                             
                             # Start containers
-                            docker compose up -d --build 2>/dev/null || docker-compose up -d --build
+                            docker compose up -d --build || docker-compose up -d --build
                             
                             # Show running containers
                             docker ps
