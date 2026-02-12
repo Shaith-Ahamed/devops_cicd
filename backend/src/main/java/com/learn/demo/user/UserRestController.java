@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://13.219.233.90:3000"}) // Dev CORS (so the frond end request isn't blocked)
-
+// @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://13.219.233.90:3000"}) // Dev CORS (so the frond end request isn't blocked)
+@CrossOrigin(origins = "*")
 
 
 @RestController
