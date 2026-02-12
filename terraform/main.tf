@@ -303,6 +303,13 @@ resource "aws_instance" "application" {
               git clone https://github.com/Shaith-Ahamed/devops_cicd.git
               cd devops_cicd
               
+              # Generate docker-compose.yml from template with actual values
+              export APP_PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+              export RDS_ENDPOINT="${aws_db_instance.mysql.endpoint}"
+              export DB_PASSWORD="${var.db_password}"
+              
+              envsubst < docker-compose.yml.tpl > docker-compose.yml
+              
               # Start the application with docker-compose
               sudo docker-compose up -d
               

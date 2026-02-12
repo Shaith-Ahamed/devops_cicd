@@ -1,0 +1,80 @@
+{
+  "application_server_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "13.219.233.90"
+  },
+  "backend_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "http://13.219.233.90:8081"
+  },
+  "frontend_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "http://13.219.233.90:3000"
+  },
+  "jenkins_server_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "13.220.241.174"
+  },
+  "jenkins_server_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "http://13.220.241.174:8080"
+  },
+  "private_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-00b9b4ca7525ecc51",
+      "subnet-06cc955b0f8fe2c6d"
+    ]
+  },
+  "public_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-058e04ef56a51a51a",
+      "subnet-07650173c23bb7514"
+    ]
+  },
+  "rds_database_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "users"
+  },
+  "rds_endpoint": {
+    "sensitive": true,
+    "type": "string",
+    "value": "online-education-mysql.ccju26ue634z.us-east-1.rds.amazonaws.com:3306"
+  },
+  "ssh_command_app": {
+    "sensitive": false,
+    "type": "string",
+    "value": "ssh -i ~/.ssh/appKey ubuntu@13.219.233.90"
+  },
+  "ssh_command_jenkins": {
+    "sensitive": false,
+    "type": "string",
+    "value": "ssh -i ~/.ssh/appKey ubuntu@13.220.241.174"
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-08b0dc45a99b12a3e"
+  }
+}
