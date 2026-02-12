@@ -53,10 +53,10 @@ output "rds_database_name" {
 
 output "ssh_command_jenkins" {
   description = "SSH command for Jenkins server"
-  value       = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.jenkins.public_ip}"
+  value       = "ssh -i ~/.ssh/appKey ubuntu@${aws_instance.jenkins.public_ip}"
 }
 
 output "ssh_command_app" {
   description = "SSH command for application server"
-  value       = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.application.public_ip}"
+  value       = "ssh -i ~/.ssh/appKey ubuntu@${aws_instance.application.public_ip}"
 }

@@ -13,6 +13,12 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Key Pair
+resource "aws_key_pair" "tester_key" {
+  key_name   = "tester-key"
+  public_key = file("~/.ssh/appKey.pub")
+}
+
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -150,6 +156,14 @@ resource "aws_security_group" "application" {
   }
 
   ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     description = "HTTP"
     from_port   = 80
     to_port     = 80
@@ -203,7 +217,7 @@ resource "aws_instance" "jenkins" {
   instance_type          = var.jenkins_instance_type
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.jenkins.id]
-  key_name               = var.key_name
+  key_name               = aws_key_pair.tester_key.key_name
 
   user_data = <<-EOF
               #!/bin/bash
@@ -271,15 +285,29 @@ resource "aws_instance" "application" {
   instance_type          = var.app_instance_type
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.application.id]
-  key_name               = var.key_name
+  key_name               = aws_key_pair.tester_key.key_name
 
   user_data = <<-EOF
               #!/bin/bash
               sudo apt-get update -y
-              sudo apt-get install -y docker.io docker-compose
+              sudo apt-get install -y docker.io docker-compose git
               sudo usermod -aG docker ubuntu
               sudo systemctl start docker
               sudo systemctl enable docker
+              
+              # Wait for Docker to be ready
+              sleep 10
+              
+              # Clone the repository
+              cd /home/ubuntu
+              git clone https://github.com/Shaith-Ahamed/devops_cicd.git
+              cd devops_cicd
+              
+              # Start the application with docker-compose
+              sudo docker-compose up -d
+              
+              # Set ownership
+              sudo chown -R ubuntu:ubuntu /home/ubuntu/devops_cicd
               EOF
 
   root_block_device {

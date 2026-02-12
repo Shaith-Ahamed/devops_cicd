@@ -46,7 +46,7 @@ variable "jenkins_ami" {
 variable "jenkins_instance_type" {
   description = "Instance type for Jenkins server"
   type        = string
-  default     = "t2.micro"  # Free Tier eligible
+  default     = "t3.micro"  # Free Tier eligible (check your account status)
 }
 
 # Application Server
@@ -59,7 +59,7 @@ variable "app_ami" {
 variable "app_instance_type" {
   description = "Instance type for application server"
   type        = string
-  default     = "t2.micro"  # Free Tier eligible
+  default     = "t3.micro"  # Free Tier eligible (check your account status)
 }
 
 # Database Configuration

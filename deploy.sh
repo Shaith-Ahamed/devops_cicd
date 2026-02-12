@@ -15,7 +15,7 @@ echo "🚀 Provisioning infrastructure with Terraform..."
 cd terraform || { echo "Terraform directory not found!"; exit 1; }
 terraform init
 terraform apply -auto-approve
-terraform output -json instance_public_ips > output.json
+terraform output -json > output.json
 cd ..
 
 # 2️⃣ Stop and remove old containers, volumes, and orphan containers
