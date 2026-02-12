@@ -2,12 +2,21 @@
 
 # --- Deploy script for devops_cicd ---
 
-# 1️⃣ Go to project directory
-cd ~/devops_cicd || { echo "Directory ~/devops_cicd not found!"; exit 1; }
+# 1️⃣ Get script directory and navigate there
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR" || { echo "Failed to change to script directory!"; exit 1; }
 
-echo "✅ Pulling latest code from GitHub..."
-git fetch origin
-git reset --hard origin/main
+# echo "✅ Pulling latest code from GitHub..."
+# git fetch origin
+# git reset --hard origin/main
+
+# 1.5️⃣ Run Terraform to provision infrastructure
+echo "🚀 Provisioning infrastructure with Terraform..."
+cd terraform || { echo "Terraform directory not found!"; exit 1; }
+terraform init
+terraform apply -auto-approve
+terraform output -json instance_public_ips > output.json
+cd ..
 
 # 2️⃣ Stop and remove old containers, volumes, and orphan containers
 echo "🛑 Stopping old containers and cleaning up..."
