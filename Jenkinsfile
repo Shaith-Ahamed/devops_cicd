@@ -50,22 +50,22 @@ pipeline {
             }
         }
 
-        // stage('Backend: SonarCloud Analysis') {
-        //     steps {
-        //         dir('backend') { 
-        //             withCredentials([string(credentialsId: "${SONAR_CLOUD_CRED}", variable: 'SONAR_TOKEN')]) {
-        //                 sh """
-        //                     mvn sonar:sonar \
-        //                       -Dsonar.projectKey=devops_cicd \
-        //                       -Dsonar.organization=shaith-ahamed \
-        //                       -Dsonar.host.url=https://sonarcloud.io \
-        //                       -Dsonar.login=$SONAR_TOKEN \
-        //                       -Dsonar.java.binaries=target/classes
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Backend: SonarCloud Analysis') {
+            steps {
+                dir('backend') { 
+                    withCredentials([string(credentialsId: "${SONAR_CLOUD_CRED}", variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \
+                              -Dsonar.projectKey=devops_cicd \
+                              -Dsonar.organization=shaith-ahamed \
+                              -Dsonar.host.url=https://sonarcloud.io \
+                              -Dsonar.login=$SONAR_TOKEN \
+                              -Dsonar.java.binaries=target/classes
+                        """
+                    }
+                }
+            }
+        }
 
         stage('Backend: Package') {
             steps {
@@ -147,16 +147,16 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to application server...'
-                    // Deploy to your application server via SSH
+            
                     sshagent(['app-server-ssh-key']) {
                         sh '''
-                            // ssh -o StrictHostKeyChecking=no ubuntu@3.238.141.63 '
-                            //     cd ~/devops_cicd || cd ~/online-education-cicd
-                                // git pull origin main
-                                // docker compose down --remove-orphans || true
-                                // docker compose pull || true
-                                // docker compose up -d --build
-                                // docker ps
+                            ssh -o StrictHostKeyChecking=no ubuntu@3.239.149.35 '
+                                cd ~/devops_cicd || cd ~/online-education-cicd
+                                git pull origin main
+                                docker compose down --remove-orphans || true
+                                docker compose pull || true
+                                docker compose up -d --build
+                                docker ps
                             '
                         '''
                     }

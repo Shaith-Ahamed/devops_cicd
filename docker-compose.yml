@@ -59,8 +59,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_BASE=http://3.239.149.35:8081  # Change to your backend public IP
-    ports:
+        - VITE_API_BASE=http://3.239.149.35:8081  
       - "3000:80"
     networks:
       - app-network
