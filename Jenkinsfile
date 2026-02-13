@@ -7,9 +7,6 @@ pipeline {
         jdk 'jdk17'
         maven 'maven3'
     }
-    parameters {
-        string(name: 'APP_SERVER_IP', defaultValue: '', description: 'Public IP of the EC2 application server')
-    }
     environment {
         GITHUB_CRED = 'GitHub-Token'
         DOCKERHUB_CRED = 'DockerHub-Token'
@@ -18,6 +15,7 @@ pipeline {
         FRONTEND_IMAGE = 'shaith/online-education-frontend'
         TRIVY_CACHE = '/tmp/trivy-cache'
         TRIVY_TIMEOUT = '30m'
+        APP_SERVER_IP = '52.5.195.236'
     }
 
     stages {
@@ -153,7 +151,7 @@ pipeline {
             
                     sshagent(['app-server-ssh-key']) {
                         sh """
-                            ssh -o StrictHostKeyChecking=no ubuntu@${params.APP_SERVER_IP} '
+                            ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
                                 cd ~/devops_cicd || cd ~/online-education-cicd
                                 git pull origin main
                                 docker compose down --remove-orphans || true
