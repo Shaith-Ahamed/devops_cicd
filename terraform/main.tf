@@ -225,6 +225,17 @@ resource "aws_instance" "application" {
   }
 }
 
+# Elastic IP for Application Server (static IP that doesn't change on restart)
+resource "aws_eip" "app_server" {
+  instance = aws_instance.application.id
+  domain   = "vpc"
+
+  tags = {
+    Name        = "${var.project_name}-app-eip"
+    Environment = var.environment
+  }
+}
+
 # RDS Subnet Group
 resource "aws_db_subnet_group" "main" {
   name       = "${var.project_name}-db-subnet-group"

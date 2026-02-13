@@ -16,18 +16,18 @@ output "private_subnet_ids" {
 }
 
 output "application_server_public_ip" {
-  description = "Application server public IP"
-  value       = aws_instance.application.public_ip
+  description = "Application server Elastic IP"
+  value       = aws_eip.app_server.public_ip
 }
 
 output "frontend_url" {
   description = "Frontend application URL"
-  value       = "http://${aws_instance.application.public_ip}:3000"
+  value       = "http://${aws_eip.app_server.public_ip}:3000"
 }
 
 output "backend_url" {
   description = "Backend API URL"
-  value       = "http://${aws_instance.application.public_ip}:8081"
+  value       = "http://${aws_eip.app_server.public_ip}:8081"
 }
 
 output "rds_endpoint" {
@@ -43,5 +43,5 @@ output "rds_database_name" {
 
 output "ssh_command_app" {
   description = "SSH command for application server"
-  value       = "ssh -i ~/.ssh/appKey ubuntu@${aws_instance.application.public_ip}"
+  value       = "ssh -i ~/.ssh/appKey ubuntu@${aws_eip.app_server.public_ip}"
 }
