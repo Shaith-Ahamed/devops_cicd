@@ -152,11 +152,11 @@ pipeline {
                         sh '''
                             ssh -o StrictHostKeyChecking=no ubuntu@3.238.141.63 '
                                 cd ~/devops_cicd || cd ~/online-education-cicd
-                                git pull origin main
-                                docker compose down --remove-orphans || true
-                                docker compose pull || true
-                                docker compose up -d --build
-                                docker ps
+                                // git pull origin main
+                                // docker compose down --remove-orphans || true
+                                // docker compose pull || true
+                                // docker compose up -d --build
+                                // docker ps
                             '
                         '''
                     }
