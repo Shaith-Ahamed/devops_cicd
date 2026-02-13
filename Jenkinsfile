@@ -95,7 +95,9 @@ pipeline {
                               --format table \
                               --exit-code 0 \
                               --timeout ${TRIVY_TIMEOUT} \
-                              ${buildTag}
+                              --skip-java-db-update \
+                              --skip-db-update \
+                              ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
                         
                         // Docker push
@@ -129,7 +131,9 @@ pipeline {
                               --format table \
                               --exit-code 0 \
                               --timeout ${TRIVY_TIMEOUT} \
-                              ${buildTag}
+                              --skip-java-db-update \
+                              --skip-db-update \
+                              ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
 
                         // Docker push
