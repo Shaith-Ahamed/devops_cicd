@@ -118,7 +118,7 @@ pipeline {
                     script {
                         def buildTag = "${FRONTEND_IMAGE}:${BUILD_NUMBER}"
                         def latestTag = "${FRONTEND_IMAGE}:latest"
-                        sh "docker build -t ${buildTag} ."
+                        sh "docker build --build-arg VITE_API_BASE=http://${APP_SERVER_IP}:8081 -t ${buildTag} ."
 
                         // Trivy scan
                         sh """
@@ -159,7 +159,8 @@ pipeline {
                                 cd ~/devops_cicd || cd ~/online-education-cicd
                                 git pull origin main
                                 docker-compose down || true
-                                docker-compose build --no-cache
+                                docker pull ${BACKEND_IMAGE}:latest
+                                docker pull ${FRONTEND_IMAGE}:latest
                                 docker-compose up -d
                                 docker ps
                             '
