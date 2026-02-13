@@ -36,19 +36,6 @@ variable "key_name" {
   default     = "online-education-key"
 }
 
-# Jenkins Server
-variable "jenkins_ami" {
-  description = "AMI ID for Jenkins server (Ubuntu 22.04)"
-  type        = string
-  default     = "ami-0e2c8caa4b6378d8c" # Ubuntu 22.04 LTS in us-east-1
-}
-
-variable "jenkins_instance_type" {
-  description = "Instance type for Jenkins server"
-  type        = string
-  default     = "t3.micro"  # Free Tier eligible (check your account status)
-}
-
 # Application Server
 variable "app_ami" {
   description = "AMI ID for application server (Ubuntu 22.04)"

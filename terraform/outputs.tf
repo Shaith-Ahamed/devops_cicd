@@ -15,16 +15,6 @@ output "private_subnet_ids" {
   value       = aws_subnet.private[*].id
 }
 
-output "jenkins_server_public_ip" {
-  description = "Jenkins server public IP"
-  value       = aws_instance.jenkins.public_ip
-}
-
-output "jenkins_server_url" {
-  description = "Jenkins server URL"
-  value       = "http://${aws_instance.jenkins.public_ip}:8080"
-}
-
 output "application_server_public_ip" {
   description = "Application server public IP"
   value       = aws_instance.application.public_ip
@@ -49,11 +39,6 @@ output "rds_endpoint" {
 output "rds_database_name" {
   description = "RDS database name"
   value       = aws_db_instance.mysql.db_name
-}
-
-output "ssh_command_jenkins" {
-  description = "SSH command for Jenkins server"
-  value       = "ssh -i ~/.ssh/appKey ubuntu@${aws_instance.jenkins.public_ip}"
 }
 
 output "ssh_command_app" {

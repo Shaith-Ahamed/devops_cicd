@@ -7,6 +7,9 @@ pipeline {
         jdk 'jdk17'
         maven 'maven3'
     }
+    parameters {
+        string(name: 'APP_SERVER_IP', defaultValue: '', description: 'Public IP of the EC2 application server')
+    }
     environment {
         GITHUB_CRED = 'GitHub-Token'
         DOCKERHUB_CRED = 'DockerHub-Token'
@@ -143,41 +146,6 @@ pipeline {
             }
         }
 
-        stage('Terraform Infrastructure') {
-            steps {
-                script {
-                    echo 'Provisioning infrastructure with Terraform...'
-                    
-                    dir('terraform') {
-                        // Initialize Terraform
-                        sh 'terraform init'
-                        
-                        // Validate configuration
-                        sh 'terraform validate'
-                        
-                        // Plan infrastructure changes
-                        sh 'terraform plan -out=tfplan'
-                        
-                        // Apply infrastructure changes
-                        sh 'terraform apply -auto-approve tfplan'
-                        
-                        // Export outputs
-                        sh 'terraform output -json > ../output.json'
-                    }
-                    
-                    // Read the instance IPs from output
-                    def outputs = readJSON file: 'output.json'
-                    env.APP_PUBLIC_IP = outputs.app_public_ip.value[0]
-                    env.JENKINS_PUBLIC_IP = outputs.jenkins_public_ip.value
-                    env.RDS_ENDPOINT = outputs.rds_endpoint.value
-                    
-                    echo "Application Server IP: ${env.APP_PUBLIC_IP}"
-                    echo "Jenkins Server IP: ${env.JENKINS_PUBLIC_IP}"
-                    echo "RDS Endpoint: ${env.RDS_ENDPOINT}"
-                }
-            }
-        }
-
         stage('Staging Deployment') {
             steps {
                 script {
@@ -185,7 +153,7 @@ pipeline {
             
                     sshagent(['app-server-ssh-key']) {
                         sh """
-                            ssh -o StrictHostKeyChecking=no ubuntu@${env.APP_PUBLIC_IP} '
+                            ssh -o StrictHostKeyChecking=no ubuntu@${params.APP_SERVER_IP} '
                                 cd ~/devops_cicd || cd ~/online-education-cicd
                                 git pull origin main
                                 docker compose down --remove-orphans || true

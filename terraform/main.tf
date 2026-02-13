@@ -90,41 +90,6 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Security Group for Jenkins
-resource "aws_security_group" "jenkins" {
-  name        = "${var.project_name}-jenkins-sg"
-  description = "Security group for Jenkins server"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Jenkins Web UI"
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name        = "${var.project_name}-jenkins-sg"
-    Environment = var.environment
-  }
-}
-
 # Security Group for Application (Frontend/Backend)
 resource "aws_security_group" "application" {
   name        = "${var.project_name}-app-sg"
@@ -207,60 +172,6 @@ resource "aws_security_group" "rds" {
 
   tags = {
     Name        = "${var.project_name}-rds-sg"
-    Environment = var.environment
-  }
-}
-
-# EC2 Instance for Jenkins
-resource "aws_instance" "jenkins" {
-  ami                    = var.jenkins_ami
-  instance_type          = var.jenkins_instance_type
-  subnet_id              = aws_subnet.public[0].id
-  vpc_security_group_ids = [aws_security_group.jenkins.id]
-  key_name               = aws_key_pair.tester_key.key_name
-
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo apt-get update -y
-              sudo apt-get install -y docker.io docker-compose
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              
-              # Run Jenkins in Docker with aggressive memory limits for t3.micro (1GB)
-              sudo docker run -d \
-                --name jenkins \
-                --restart unless-stopped \
-                -p 8080:8080 -p 50000:50000 \
-                -v jenkins_home:/var/jenkins_home \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -u root \
-                -e JAVA_OPTS="-Xmx400m -Xms200m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC" \
-                --memory="600m" \
-                --memory-swap="600m" \
-                jenkins/jenkins:lts
-              
-              # Wait for Jenkins to start
-              sleep 60
-              
-              # Install Docker CLI inside Jenkins container
-              sudo docker exec -u root jenkins bash -c "
-                apt-get update && \
-                apt-get install -y apt-transport-https ca-certificates curl gnupg && \
-                curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-                echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable' > /etc/apt/sources.list.d/docker.list && \
-                apt-get update && \
-                apt-get install -y docker-ce-cli && \
-                chmod 666 /var/run/docker.sock
-              "
-              EOF
-
-  root_block_device {
-    volume_size = 30  # Free Tier: 30GB EBS storage
-    volume_type = "gp2"  # Free Tier uses gp2
-  }
-
-  tags = {
-    Name        = "${var.project_name}-jenkins-server"
     Environment = var.environment
   }
 }
