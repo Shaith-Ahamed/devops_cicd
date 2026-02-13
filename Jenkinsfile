@@ -10,7 +10,7 @@ pipeline {
     environment {
         GITHUB_CRED = 'GitHub-Token'
         DOCKERHUB_CRED = 'DockerHub-Token'
-        SONAR_CLOUD_CRED = 'SonarCloud-Token'  // Changed to SonarCloud
+        SONAR_CLOUD_CRED = 'SonarCloud-Token'  
         BACKEND_IMAGE = 'shaith/online-education-backend'
         FRONTEND_IMAGE = 'shaith/online-education-frontend'
         TRIVY_CACHE = '/tmp/trivy-cache'

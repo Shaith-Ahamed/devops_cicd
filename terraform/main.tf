@@ -222,49 +222,35 @@ resource "aws_instance" "jenkins" {
   user_data = <<-EOF
               #!/bin/bash
               sudo apt-get update -y
-              sudo apt-get install -y openjdk-17-jdk docker.io docker-compose
+              sudo apt-get install -y docker.io docker-compose
               sudo systemctl start docker
               sudo systemctl enable docker
               
-              # Create Docker network for Jenkins and SonarQube
-              sudo docker network create jenkins-network || true
-              
-              # Run SonarQube in Docker
-              sudo docker run -d \
-                --name sonarqube \
-                --network jenkins-network \
-                --restart unless-stopped \
-                -p 9000:9000 \
-                -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
-                sonarqube:lts-community
-              
-              # Run Jenkins in Docker with Docker socket mounted
+              # Run Jenkins in Docker with memory limits for t3.micro
               sudo docker run -d \
                 --name jenkins \
-                --network jenkins-network \
                 --restart unless-stopped \
                 -p 8080:8080 -p 50000:50000 \
                 -v jenkins_home:/var/jenkins_home \
                 -v /var/run/docker.sock:/var/run/docker.sock \
                 -u root \
+                -e JAVA_OPTS="-Xmx512m -Xms256m" \
+                --memory="768m" \
+                --memory-swap="768m" \
                 jenkins/jenkins:lts
               
               # Wait for Jenkins to start
-              sleep 30
+              sleep 45
               
-              # Install Docker CLI and Trivy inside Jenkins container
+              # Install Docker CLI inside Jenkins container
               sudo docker exec -u root jenkins bash -c "
                 apt-get update && \
-                apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
+                apt-get install -y apt-transport-https ca-certificates curl gnupg && \
                 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
                 echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable' > /etc/apt/sources.list.d/docker.list && \
                 apt-get update && \
-                apt-get install -y docker-ce-cli docker-compose-plugin && \
-                chmod 666 /var/run/docker.sock && \
-                wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add - && \
-                echo 'deb https://aquasecurity.github.io/trivy-repo/deb bullseye main' > /etc/apt/sources.list.d/trivy.list && \
-                apt-get update && \
-                apt-get install -y trivy
+                apt-get install -y docker-ce-cli && \
+                chmod 666 /var/run/docker.sock
               "
               EOF
 

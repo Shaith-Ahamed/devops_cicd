@@ -40,7 +40,7 @@ variable "key_name" {
 variable "jenkins_ami" {
   description = "AMI ID for Jenkins server (Ubuntu 22.04)"
   type        = string
-  default     = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
+  default     = "ami-0e2c8caa4b6378d8c" # Ubuntu 22.04 LTS in us-east-1
 }
 
 variable "jenkins_instance_type" {
@@ -53,7 +53,7 @@ variable "jenkins_instance_type" {
 variable "app_ami" {
   description = "AMI ID for application server (Ubuntu 22.04)"
   type        = string
-  default     = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
+  default     = "ami-0e2c8caa4b6378d8c" # Ubuntu 22.04 LTS in us-east-1
 }
 
 variable "app_instance_type" {
