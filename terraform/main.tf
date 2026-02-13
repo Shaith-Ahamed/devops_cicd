@@ -226,7 +226,7 @@ resource "aws_instance" "jenkins" {
               sudo systemctl start docker
               sudo systemctl enable docker
               
-              # Run Jenkins in Docker with memory limits for t3.micro
+              # Run Jenkins in Docker with aggressive memory limits for t3.micro (1GB)
               sudo docker run -d \
                 --name jenkins \
                 --restart unless-stopped \
@@ -234,13 +234,13 @@ resource "aws_instance" "jenkins" {
                 -v jenkins_home:/var/jenkins_home \
                 -v /var/run/docker.sock:/var/run/docker.sock \
                 -u root \
-                -e JAVA_OPTS="-Xmx512m -Xms256m" \
-                --memory="768m" \
-                --memory-swap="768m" \
+                -e JAVA_OPTS="-Xmx400m -Xms200m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC" \
+                --memory="600m" \
+                --memory-swap="600m" \
                 jenkins/jenkins:lts
               
               # Wait for Jenkins to start
-              sleep 45
+              sleep 60
               
               # Install Docker CLI inside Jenkins container
               sudo docker exec -u root jenkins bash -c "
