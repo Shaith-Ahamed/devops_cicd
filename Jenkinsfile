@@ -158,9 +158,9 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
                                 cd ~/devops_cicd || cd ~/online-education-cicd
                                 git pull origin main
-                                docker compose down --remove-orphans || true
-                                docker compose pull || true
-                                docker compose up -d --build
+                                docker-compose down || true
+                                docker-compose build --no-cache
+                                docker-compose up -d
                                 docker ps
                             '
                         """
