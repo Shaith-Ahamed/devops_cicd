@@ -1,6 +1,3 @@
-
-
-
 pipeline {
     agent any
     tools {
@@ -10,7 +7,7 @@ pipeline {
     environment {
         GITHUB_CRED = 'GitHub-Token'
         DOCKERHUB_CRED = 'DockerHub-Token'
-        SONAR_CLOUD_CRED = 'SonarCloud-Token'  
+        SONAR_CLOUD_CRED = 'SonarCloud-Token'
         BACKEND_IMAGE = 'shaith/online-education-backend'
         FRONTEND_IMAGE = 'shaith/online-education-frontend'
         TRIVY_CACHE = '/tmp/trivy-cache'
@@ -22,16 +19,9 @@ pipeline {
 
         stage('clean workspace') {
             steps {
-                deleteDir() 
+                deleteDir()
             }
         }
-
-
-
-
-
-
-
 
         stage('Code Checkout') {
             steps {
@@ -83,8 +73,7 @@ pipeline {
                         def buildTag = "${BACKEND_IMAGE}:${BUILD_NUMBER}"
                         def latestTag = "${BACKEND_IMAGE}:latest"
                         sh "docker build -t ${buildTag} -f Dockerfile ."
-                        
-                        // Trivy scan
+
                         sh """
                             docker run --rm \
                               -v /var/run/docker.sock:/var/run/docker.sock \
@@ -99,8 +88,7 @@ pipeline {
                               --skip-db-update \
                               ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
-                        
-                        // Docker push
+
                         withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
                             sh "docker tag ${buildTag} ${latestTag}"
                             sh "docker push ${buildTag}"
@@ -120,7 +108,6 @@ pipeline {
                         def latestTag = "${FRONTEND_IMAGE}:latest"
                         sh "docker build --build-arg VITE_API_BASE=http://${APP_SERVER_IP}:8081 -t ${buildTag} ."
 
-                        // Trivy scan
                         sh """
                             docker run --rm \
                               -v /var/run/docker.sock:/var/run/docker.sock \
@@ -136,7 +123,6 @@ pipeline {
                               ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
 
-                        // Docker push
                         withDockerRegistry(credentialsId: "${DOCKERHUB_CRED}", url: '') {
                             sh "docker tag ${buildTag} ${latestTag}"
                             sh "docker push ${buildTag}"
