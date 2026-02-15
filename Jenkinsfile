@@ -142,7 +142,7 @@ pipeline {
                     sshagent(['app-server-ssh-key']) {
                         sh """
                             ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
-                                cd ~/devops_cicd || cd ~/online-education-cicd
+                                cd ~/devops_cicd
                                 git pull origin main
                                 docker-compose down || true
                                 docker pull ${BACKEND_IMAGE}:latest
