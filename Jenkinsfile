@@ -84,7 +84,6 @@ pipeline {
                               --format table \
                               --exit-code 0 \
                               --timeout ${TRIVY_TIMEOUT} \
-
                               ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
 
@@ -117,7 +116,6 @@ pipeline {
                               --format table \
                               --exit-code 0 \
                               --timeout ${TRIVY_TIMEOUT} \
-     
                               ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
 
