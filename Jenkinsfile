@@ -84,8 +84,7 @@ pipeline {
                               --format table \
                               --exit-code 0 \
                               --timeout ${TRIVY_TIMEOUT} \
-                            //   --skip-java-db-update \
-                            //   --skip-db-update \
+
                               ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
 
@@ -118,8 +117,7 @@ pipeline {
                               --format table \
                               --exit-code 0 \
                               --timeout ${TRIVY_TIMEOUT} \
-                            //   --skip-java-db-update \
-                            //   --skip-db-update \
+     
                               ${buildTag} || echo 'Trivy scan warning - continuing pipeline'
                         """
 
